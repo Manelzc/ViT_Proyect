@@ -11,7 +11,7 @@ from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 
-from torchvision.transforms import ToTensor,Resize,Compos, RandomHorizontalFlip, RandomResizedCrop, ColorJitter
+from torchvision.transforms import ToTensor,Resize,Compose, RandomHorizontalFlip, RandomResizedCrop, ColorJitter
 from torchvision import datasets
 from collections import Counter
 
