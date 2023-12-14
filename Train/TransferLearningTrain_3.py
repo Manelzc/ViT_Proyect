@@ -110,14 +110,6 @@ model = ViT(
 # Cargar los pesos preentrenados (comentar si hay que entrenar desde cero)
 model.load_state_dict(torch.load("/content/drive/MyDrive/ViT_proyect/models/best_model_6_20.pth"))
 
-# Congelar todas las capas excepto la capa lineal final
-for param in model.parameters():
-    param.requires_grad = False
-
-# Habilitar el gradiente para los parámetros de la capa lineal final
-for param in model[2][2].parameters():
-    param.requires_grad = True
-
 # Modificar la capa Linear en la ClassificationHead con el nuevo número de clases y pasarla al dispositivo
 model[2][2] = nn.Linear(768, num_clases).to(device)
 
