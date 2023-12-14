@@ -23,7 +23,7 @@ from YogaDatasetClass import YogaDataset
 
 ds_link = '/content/drive/MyDrive/ViT_proyect/Images'
 archivo_train_txt = '/content/drive/MyDrive/ViT_proyect/yoga_train.txt'
-num_clases = 20
+num_clases = 82
 seed = 42
 torch.manual_seed(seed)
 
@@ -85,7 +85,7 @@ PATCH_HEIGHT = IMAGE_HEIGHT//N_PATCHES
 
 
 N_EPOCHS = 50
-LR = 0.000001
+LR = 0.001
 import os
 
 
@@ -108,7 +108,7 @@ model = ViT(
 
 
 # Cargar los pesos preentrenados (comentar si hay que entrenar desde cero)
-model.load_state_dict(torch.load("/content/drive/MyDrive/ViT_proyect/models/best_model_6_20_MLP.pth"))
+model.load_state_dict(torch.load("/content/drive/MyDrive/ViT_proyect/models/best_model_6_20.pth"))
 
 # Congelar todas las capas excepto la capa lineal final
 for param in model.parameters():
@@ -136,7 +136,7 @@ size_all_mb = (param_size + buffer_size) / 1024**2
 print('model size: {:.2f}MB'.format(size_all_mb))
 
 
-BEST_MODEL_PATH = "/content/drive/MyDrive/ViT_proyect/models/best_model_6_20_82_MLP.pth"
+BEST_MODEL_PATH = "/content/drive/MyDrive/ViT_proyect/models/best_model_6_20_82.pth"
 
 
 
