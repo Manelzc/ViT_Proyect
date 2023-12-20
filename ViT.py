@@ -23,32 +23,14 @@ class PatchEmbedding(nn.Module):
         return x
 
 
-class MultiHeadAttention(nn.Module):
-    def __init__(self, emb_size = 768, num_heads = 8, dropout: float = 0):
-        super().__init__()
-        self.emb_size = emb_size
-        self.num_heads = num_heads
-        # Fusionar Values, Queries y Keys en una matriz:
-        self.qkv = nn.Linear(emb_size, emb_size * 3)
-        self.att_drop = nn.Dropout(dropout)
-        self.projection = nn.Linear(emb_size, emb_size)
-
-    def forward(self, x : Tensor, mask: Tensor = None) -> Tensor:
-        # Separar Values, Queries y Keys en num_heads
-        qkv = rearrange(self.qkv(x), "b n (h d qkv) -> (qkv) b h n d", h=self.num_heads, qkv=3)
-        queries, keys, values = qkv[0], qkv[1], qkv[2]
-        energy = torch.einsum('bhqd, bhkd -> bhqk', queries, keys)  # Ultimo eje
-        if mask is not None:
-            fill_value = torch.finfo(torch.float32).min
-            energy.mask_fill(~mask, fill_value)
-
-        scaling = self.emb_size ** (1/2)
-        att = F.softmax(energy, dim=-1) / scaling
-        att = self.att_drop(att)
-        out = torch.einsum('bhal, bhlv -> bhav ', att, values) # Tercer eje
-        out = rearrange(out, "b h n d -> b n (h d)")
-        out = self.projection(out)
-        return out
+class FeedForwardBlock(nn.Sequential):
+    def __init__(self, emb_size: int, expansion = 4, drop_p: float = 0.):
+        super().__init__(
+            nn.Linear(emb_size, expansion * emb_size),
+            nn.GELU(),
+            nn.Dropout(drop_p),
+            nn.Linear(expansion * emb_size, emb_size),
+        )
 
 
 class ResidualAdd(nn.Module):
@@ -61,16 +43,6 @@ class ResidualAdd(nn.Module):
         x = self.fn(x, **kwargs)
         x += res
         return x
-
-
-class FeedForwardBlock(nn.Sequential):
-    def __init__(self, emb_size: int, expansion = 4, drop_p: float = 0.):
-        super().__init__(
-            nn.Linear(emb_size, expansion * emb_size),
-            nn.GELU(),
-            nn.Dropout(drop_p),
-            nn.Linear(expansion * emb_size, emb_size),
-        )
 
 
 class TransformerEncoderBlock(nn.Sequential):
@@ -100,12 +72,43 @@ class TransformerEncoder(nn.Sequential):
         super().__init__(*[TransformerEncoderBlock(**kwargs) for _ in range(depth)])
 
 
+
 class ClassificationHead(nn.Sequential):
     def __init__(self, emb_size = 768, n_classes = 1000): # CIFAR y ImageNet tienen 1000 clases, normalmente se define asi
         super().__init__(
             Reduce('b n e -> b e', reduction='mean'),
             nn.LayerNorm(emb_size),
             nn.Linear(emb_size, n_classes))
+
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, emb_size = 768, num_heads = 8, dropout: float = 0):
+        super().__init__()
+        self.emb_size = emb_size
+        self.num_heads = num_heads
+        # Fusionar Values, Queries y Keys en una matriz:
+        self.qkv = nn.Linear(emb_size, emb_size * 3)
+        self.att_drop = nn.Dropout(dropout)
+        self.projection = nn.Linear(emb_size, emb_size)
+
+    def forward(self, x : Tensor, mask: Tensor = None) -> Tensor:
+        # Separar Values, Queries y Keys en num_heads
+        qkv = rearrange(self.qkv(x), "b n (h d qkv) -> (qkv) b h n d", h=self.num_heads, qkv=3)
+        queries, keys, values = qkv[0], qkv[1], qkv[2]
+        energy = torch.einsum('bhqd, bhkd -> bhqk', queries, keys)  # Ultimo eje
+        if mask is not None:
+            fill_value = torch.finfo(torch.float32).min
+            energy.mask_fill(~mask, fill_value)
+
+        scaling = self.emb_size ** (1/2)
+        att = F.softmax(energy, dim=-1) / scaling
+        att = self.att_drop(att)
+        out = torch.einsum('bhal, bhlv -> bhav ', att, values) # Tercer eje
+        out = rearrange(out, "b h n d -> b n (h d)")
+        out = self.projection(out)
+        return out
+
+
 
 
 class ViT(nn.Sequential):
