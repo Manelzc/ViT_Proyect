@@ -46,12 +46,7 @@ class ResidualAdd(nn.Module):
 
 
 class TransformerEncoderBlock(nn.Sequential):
-    def __init__(self,
-                 emb_size = 768,
-                 drop_p: float = 0.,
-                 forward_expansion = 4,
-                 forward_drop_p: float = 0.,
-                 ** kwargs):
+    def __init__(self, emb_size = 768, drop_p: float = 0., forward_expansion = 4, forward_drop_p: float = 0., ** kwargs):
         super().__init__(
             ResidualAdd(nn.Sequential(
                 nn.LayerNorm(emb_size),
