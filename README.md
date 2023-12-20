@@ -11,4 +11,4 @@ En Este repositorio se encuentran los módulos necesarios para la creación, ent
 
 -YogaDataLoaders genera los dataloaders para la implementación 1 y 2 mencionadas en el informe. De todas formas, dentro dentro de cada código de entrenamiento se definen estos.
 
--La carpeta train contiene los códigos utilizados para entrenar las 3 implementaciones (los números indican a qué implementación corresponde), tanto directamente como a través de transferlearning.
+-La carpeta train contiene los códigos utilizados para entrenar las 4 implementaciones (los números indican a qué implementación corresponde), tanto directamente como a través de transferlearning.
